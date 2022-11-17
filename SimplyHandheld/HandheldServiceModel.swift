@@ -8,9 +8,10 @@
 import Foundation
 import CoreBluetooth
 
-enum HandheldSupported: String, CaseIterable {
-    case cs108 = "CSL CS-108"
-    case r6 = "Chainway R6 Pro"
+@objc public enum HandheldSupported: Int {
+    case cs108
+    case r6
+    case none
 }
 
 enum HandheldUserDefault: String {
@@ -18,27 +19,46 @@ enum HandheldUserDefault: String {
     case handheldName = "com.simplyHandheld.selectedHandheldName"
 }
 
-enum HandheldMode {
+@objc public enum HandheldMode: Int {
     case barcode
     case rfid
     case none
 }
 
-struct HandheldDevice {
+public class HandheldDevice: NSObject {
     var peripheral: CBPeripheral? = nil
-    var handheldName: String
+    public var handheldName: String
     var handheldMacAddress: String
+    
+    init(peripheral: CBPeripheral? = nil, handheldName: String, handheldMacAddress: String) {
+        self.peripheral = peripheral
+        self.handheldName = handheldName
+        self.handheldMacAddress = handheldMacAddress
+    }
 }
 
-struct RFIDResponse {
-    var value: String
-    var rssi: Int
+public class RFIDResponse: NSObject {
+    public var value: String
+    public var rssi: Int
+    
+    init(value: String, rssi: Int) {
+        self.value = value
+        self.rssi = rssi
+    }
 }
 
-struct BarcodeResponse {
-    var value: String
+public class BarcodeResponse: NSObject {
+    public var value: String
+    
+    init(value: String) {
+        self.value = value
+    }
 }
 
-struct HandheldError: Error {
+public class HandheldError: NSObject, Error {
     var message: String
+    
+    init(message: String) {
+        self.message = message
+    }
 }

@@ -10,6 +10,7 @@ Pod::Spec.new do |spec|
   spec.platform     = :ios, "13.0"
   spec.source       = { :git => "https://github.com/VinceSantos/SimplyHandheld", :tag => spec.version.to_s }
   spec.source_files  = "SimplyHandheld"
+  spec.swift_versions = "5.0"
   spec.dependency 'CSL-CS108'
   spec.dependency 'SimplyChainway'
 end
