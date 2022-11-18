@@ -20,6 +20,8 @@ public class HandheldService: NSObject {
     public var handheldMode = HandheldMode.none
     public var isConnected = false
     public weak var delegate: HandheldServiceDelegate?
+    public var isTagFocus = false
+    private var batteryTrackingTimer: Timer = Timer()
 
     override init() {
         super.init()
@@ -128,7 +130,29 @@ public class HandheldService: NSObject {
                 case .success(let handheldSupport):
                     switch handheldSupport {
                     case .cs108:
-                        CSLRfidAppEngine.shared().reader.setPower(Double(power))
+                        CSLRfidAppEngine.shared().reader.setPower(Double(power / 10))
+                    case .r6:
+                        ChainwayService.shared.setReadPower(intPower: power / 10)
+                    case .none:
+                        break
+                    }
+                case .failure(let error):
+                    print(error)
+                }
+            }
+        }
+    }
+    
+    public func startBatteryTracking() {
+        batteryTrackingTimer = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { [self] _ in
+            checkHandheldSupport { handheldSupportResult in
+                switch handheldSupportResult {
+                case .success(let handheldSupport):
+                    switch handheldSupport {
+                    case .cs108:
+                        if CSLRfidAppEngine.shared().reader.connectStatus != .BUSY || CSLRfidAppEngine.shared().reader.connectStatus != .SCANNING || CSLRfidAppEngine.shared().reader.connectStatus != .TAG_OPERATIONS {
+                            CSLRfidAppEngine.shared().reader.getSingleBatteryReport()
+                        }
                     case .r6:
                         break
                     case .none:
@@ -337,15 +361,11 @@ extension HandheldService: CSLBleReaderDelegate, CSLBleInterfaceDelegate, CSLBle
                         CSLRfidAppEngine.shared().reader.readerModelNumber = READERTYPE.CS463
                     } else {
                         CSLRfidAppEngine.shared().reader.readerModelNumber = READERTYPE.CS108
-                        CSLRfidAppEngine.shared().reader.startBatteryAutoReporting()
                     }
                 }
-                
-                //set low power mode
-                CSLRfidAppEngine.shared().reader.setPowerMode(true)
-                
+                                
                 CSLReaderConfigurations.setReaderRegionAndFrequencies()
-                CSLReaderConfigurations.setAntennaPortsAndPowerForTags(true)
+                CSLReaderConfigurations.setAntennaPortsAndPowerForTags(false)
                 CSLReaderConfigurations.setConfigurationsForTags()
                 if let handheldConfigured = lastSelectedHandheld {
                     didConnectToDevice(handheld: handheldConfigured)
@@ -381,16 +401,13 @@ extension HandheldService: CSLBleReaderDelegate, CSLBleInterfaceDelegate, CSLBle
                 if handheldMode == .barcode {
                     CSLRfidAppEngine.shared().reader.startBarcodeReading()
                 } else if handheldMode == .rfid {
-                    CSLRfidAppEngine.shared().reader.setPowerMode(false)
                     CSLRfidAppEngine.shared().reader.startInventory()
                 }
             } else {
                 if handheldMode == .barcode {
                     CSLRfidAppEngine.shared().reader.stopBarcodeReading()
                 } else if handheldMode == .rfid {
-                    if CSLRfidAppEngine.shared().reader.stopInventory() {
-                        CSLRfidAppEngine.shared().reader.setPowerMode(true)
-                    }
+                    CSLRfidAppEngine.shared().reader.stopInventory()
                 }
                 CSLRfidAppEngine.shared().reader.filteredBuffer.removeAllObjects()
             }
@@ -398,7 +415,7 @@ extension HandheldService: CSLBleReaderDelegate, CSLBleInterfaceDelegate, CSLBle
     }
     
     public func didReceiveBatteryLevelIndicator(_ sender: CSLBleReader!, batteryPercentage battPct: Int32) {
-        
+        delegate?.didUpdateBatteryLevel(batteryLevel: Int(battPct))
     }
     
     public func didReceiveBarcodeData(_ sender: CSLBleReader!, scannedBarcode barcode: CSLReaderBarcode!) {
@@ -473,6 +490,7 @@ public protocol HandheldServiceDelegate: AnyObject {
     func didConnectToHandheld(handheld: HandheldDevice)
     func didFailWithHandheld(failedHandheld: HandheldDevice)
     func didDisconnectWithHandheld(disconnectedHandheld: HandheldDevice)
+    func didUpdateBatteryLevel(batteryLevel: Int)
     func didScanRFID(value: RFIDResponse)
     func didScanBarcode(value: BarcodeResponse)
 }
@@ -482,6 +500,7 @@ public extension HandheldServiceDelegate {
     func didConnectToHandheld(handheld: HandheldDevice) {}
     func didFailWithHandheld(failedHandheld: HandheldDevice) {}
     func didDisconnectWithHandheld(disconnectedHandheld: HandheldDevice) {}
+    func didUpdateBatteryLevel(batteryLevel: Int) {}
     func didScanRFID(value: RFIDResponse) {}
     func didScanBarcode(value: BarcodeResponse) {}
 }
