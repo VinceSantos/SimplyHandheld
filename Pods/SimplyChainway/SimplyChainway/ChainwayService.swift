@@ -40,16 +40,18 @@ public class ChainwayService: NSObject {
         let intString = intPower.description
         rfidBLEManager.setLaunchPowerWithstatus("1", antenna: "1", readStr: intString, writeStr: intString)
     }
+    
+    public func getBatteryLevel() {
+        rfidBLEManager.getBatteryLevel()
+    }
 }
 
 extension ChainwayService: FatScaleBluetoothManager {
     public func receiveData(withBLEmodel model: BLEModel!, result: String!) {
         if let foundModel = model {
-            if !foundDevices.contains(where: {$0.nameStr == foundModel.nameStr}) && foundModel.nameStr != nil {
+            if !foundDevices.contains(where: {$0.nameStr == foundModel.nameStr}) && foundModel.nameStr != nil && foundModel.peripheral != nil && foundModel.nameStr.hasPrefix("D5") {
                 foundDevices.append(foundModel)
-                if !foundDevices.isEmpty {
-                    delegate?.didReceiveDevices(devices: foundDevices.map({$0.nameStr}))
-                }
+                delegate?.didReceiveDevice(device: foundModel.peripheral)
             }
         }
     }
@@ -84,6 +86,10 @@ extension ChainwayService: FatScaleBluetoothManager {
             }
         } else if typeStr == "e55" {
             delegate?.didReceiveBarcode(barcode: dataStr)
+        } else if typeStr == "e5" {
+            if let batteryInt = Int(dataStr) {
+                delegate?.didReceiveBatteryLevel(batteryLevel: batteryInt)
+            }
         }
     }
 
@@ -95,19 +101,21 @@ extension ChainwayService: FatScaleBluetoothManager {
 }
 
 public protocol ChainwayServiceDelegate: AnyObject {
-    func didReceiveDevices(devices: [String]) //The Delegate for the array of the updates received BLE Devices
+    func didReceiveDevice(device: CBPeripheral)
     func didConnectToDevice(deviceName: String)
     func didDisconnectToDevice(deviceName: String)
     func didFailWithDevice(deviceName: String)
+    func didReceiveBatteryLevel(batteryLevel: Int)
     func didReceiveRFTags(tags: [String])
     func didReceiveBarcode(barcode: String)
 }
 
 extension ChainwayServiceDelegate {
-    func didReceiveDevices(devices: [String]) {}
+    func didReceiveDevice(device: CBPeripheral) {}
     func didConnectToDevice(deviceName: String) {}
     func didDisconnectToDevice(deviceName: String) {}
     func didFailWithDevice(deviceName: String) {}
+    func didReceiveBatteryLevel(batteryLevel: Int) {}
     func didReceiveRFTags(tags: [String]) {}
     func didReceiveBarcode(barcode: String) {}
 }

@@ -21,7 +21,7 @@ public class HandheldService: NSObject {
     public var isConnected = false
     public weak var delegate: HandheldServiceDelegate?
     public var isTagFocus = false
-    private var batteryTrackingTimer: Timer = Timer()
+    private var batteryTrackingTimer: Timer?
 
     override init() {
         super.init()
@@ -154,7 +154,7 @@ public class HandheldService: NSObject {
                             CSLRfidAppEngine.shared().reader.getSingleBatteryReport()
                         }
                     case .r6:
-                        break
+                        ChainwayService.shared.getBatteryLevel()
                     case .none:
                         break
                     }
@@ -162,6 +162,13 @@ public class HandheldService: NSObject {
                     print(error)
                 }
             }
+        }
+    }
+    
+    public func stopBatteryTracking() {
+        if batteryTrackingTimer != nil {
+            batteryTrackingTimer?.invalidate()
+            batteryTrackingTimer = nil
         }
     }
 }
@@ -256,7 +263,7 @@ extension HandheldService: CSLBleReaderDelegate, CSLBleInterfaceDelegate, CSLBle
     public func deviceListWasUpdated(_ deviceDiscovered: CBPeripheral!) {
         DispatchQueue.global().async { [self] in
             if !handheldDevicesList.contains(where: {$0.handheldName == deviceDiscovered.name}) {
-                handheldDevicesList.append(HandheldDevice(peripheral: deviceDiscovered, handheldName: deviceDiscovered.name ?? "", handheldMacAddress: ""))
+                handheldDevicesList.append(HandheldDevice(peripheral: deviceDiscovered, handheldName: deviceDiscovered.name ?? ""))
             }
             delegate?.didUpdateDeviceList(deviceList: handheldDevicesList)
         }
@@ -459,16 +466,17 @@ extension HandheldService: ChainwayServiceDelegate {
         }
     }
     
-    public func didReceiveDevices(devices: [String]) {
-        let d5Devices = devices.filter({$0.hasPrefix("D5")})
-        if d5Devices.count > 0 {
-            for item in d5Devices {
-                if !handheldDevicesList.contains(where: {$0.handheldName == item}) {
-                    handheldDevicesList.append(HandheldDevice(handheldName: item, handheldMacAddress: ""))
-                }
+    public func didReceiveDevice(device: CBPeripheral) {
+        DispatchQueue.global().async { [self] in
+            if !handheldDevicesList.contains(where: {$0.handheldName == device.name}) {
+                handheldDevicesList.append(HandheldDevice(peripheral: device, handheldName: device.name ?? ""))
             }
             delegate?.didUpdateDeviceList(deviceList: handheldDevicesList)
         }
+    }
+    
+    public func didReceiveBatteryLevel(batteryLevel: Int) {
+        delegate?.didUpdateBatteryLevel(batteryLevel: batteryLevel)
     }
     
     public func didReceiveRFTags(tags: [String]) {

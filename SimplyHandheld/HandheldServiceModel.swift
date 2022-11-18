@@ -26,14 +26,12 @@ enum HandheldUserDefault: String {
 }
 
 public class HandheldDevice: NSObject {
-    var peripheral: CBPeripheral? = nil
+    public var peripheral: CBPeripheral? = nil
     public var handheldName: String
-    var handheldMacAddress: String
     
-    init(peripheral: CBPeripheral? = nil, handheldName: String, handheldMacAddress: String) {
+    init(peripheral: CBPeripheral? = nil, handheldName: String) {
         self.peripheral = peripheral
         self.handheldName = handheldName
-        self.handheldMacAddress = handheldMacAddress
     }
 }
 
