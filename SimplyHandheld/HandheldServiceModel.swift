@@ -60,3 +60,11 @@ public class HandheldError: NSObject, Error {
         self.message = message
     }
 }
+
+public class HandheldInfo: NSObject {
+    public var btVersion: String = "N/A"
+    public var icLabVersion: String = "N/A"
+    public var rfidSerial: String = "N/A"
+    public var boardVersion: String = "N/A"
+    public var rfidVersion: String = "N/A"
+}

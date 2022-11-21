@@ -22,6 +22,7 @@ public class HandheldService: NSObject {
     public weak var delegate: HandheldServiceDelegate?
     public var isTagFocus = false
     private var batteryTrackingTimer: Timer?
+    public var connectedDeviceInfo = HandheldInfo()
 
     override init() {
         super.init()
@@ -295,15 +296,20 @@ extension HandheldService: CSLBleReaderDelegate, CSLBleInterfaceDelegate, CSLBle
                 CSLRfidAppEngine.shared().reader.power(onRfid: true)
                 if CSLRfidAppEngine.shared().reader.getBtFirmwareVersion(btFwVersionPtr) {
                     CSLRfidAppEngine.shared().readerInfo.btFirmwareVersion = btFwVersionPtr?.pointee as String?
+                    connectedDeviceInfo.btVersion = btFwVersionPtr?.pointee as String? ?? "N/A"
                 }
                 if CSLRfidAppEngine.shared().reader.getSilLabIcVersion(slVersionPtr) {
                     CSLRfidAppEngine.shared().readerInfo.siLabICFirmwareVersion = slVersionPtr?.pointee as String?
+                    connectedDeviceInfo.icLabVersion = slVersionPtr?.pointee as String? ?? "N/A"
+
                 }
                 if CSLRfidAppEngine.shared().reader.getRfidBrdSerialNumber(rfidBoardSnPtr) {
                     CSLRfidAppEngine.shared().readerInfo.deviceSerialNumber = rfidBoardSnPtr?.pointee as String?
+                    connectedDeviceInfo.rfidSerial = rfidBoardSnPtr?.pointee as String? ?? "N/A"
                 }
                 if CSLRfidAppEngine.shared().reader.getPcBBoardVersion(pcbBoardVersionPtr) {
                     CSLRfidAppEngine.shared().readerInfo.pcbBoardVersion = pcbBoardVersionPtr?.pointee as String?
+                    connectedDeviceInfo.boardVersion = pcbBoardVersionPtr?.pointee as String? ?? "N/A"
                 }
                 
                 CSLRfidAppEngine.shared().reader.batteryInfo.setPcbVersion(pcbBoardVersionPtr?.pointee?.doubleValue ?? 0.0)
@@ -312,6 +318,7 @@ extension HandheldService: CSLBleReaderDelegate, CSLBleInterfaceDelegate, CSLBle
                 
                 if CSLRfidAppEngine.shared().reader.getRfidFwVersionNumber(rfidFwVersionPtr) {
                     CSLRfidAppEngine.shared().readerInfo.rfidFirmwareVersion = rfidFwVersionPtr?.pointee as String?
+                    connectedDeviceInfo.rfidVersion = rfidFwVersionPtr?.pointee as String? ?? "N/A"
                 }
                 
                 
