@@ -146,21 +146,25 @@ public class HandheldService: NSObject {
     
     public func startBatteryTracking() {
         batteryTrackingTimer = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { [self] _ in
-            checkHandheldSupport { handheldSupportResult in
-                switch handheldSupportResult {
-                case .success(let handheldSupport):
-                    switch handheldSupport {
-                    case .cs108:
-                        if CSLRfidAppEngine.shared().reader.connectStatus != .BUSY || CSLRfidAppEngine.shared().reader.connectStatus != .SCANNING || CSLRfidAppEngine.shared().reader.connectStatus != .TAG_OPERATIONS {
-                            CSLRfidAppEngine.shared().reader.getSingleBatteryReport()
+            DispatchQueue.global().async { [self] in
+                if isConnected {
+                    checkHandheldSupport { handheldSupportResult in
+                        switch handheldSupportResult {
+                        case .success(let handheldSupport):
+                            switch handheldSupport {
+                            case .cs108:
+                                if CSLRfidAppEngine.shared().reader.connectStatus != .BUSY || CSLRfidAppEngine.shared().reader.connectStatus != .SCANNING || CSLRfidAppEngine.shared().reader.connectStatus != .TAG_OPERATIONS {
+                                    CSLRfidAppEngine.shared().reader.getSingleBatteryReport()
+                                }
+                            case .r6:
+                                ChainwayService.shared.getBatteryLevel()
+                            case .none:
+                                break
+                            }
+                        case .failure(let error):
+                            print(error)
                         }
-                    case .r6:
-                        ChainwayService.shared.getBatteryLevel()
-                    case .none:
-                        break
                     }
-                case .failure(let error):
-                    print(error)
                 }
             }
         }
@@ -170,6 +174,26 @@ public class HandheldService: NSObject {
         if batteryTrackingTimer != nil {
             batteryTrackingTimer?.invalidate()
             batteryTrackingTimer = nil
+        }
+    }
+    
+    public func disconnectReader() {
+        DispatchQueue.global().async { [self] in
+            checkHandheldSupport { handheldSupportResult in
+                switch handheldSupportResult {
+                case .success(let handheldSupport):
+                    switch handheldSupport {
+                    case .cs108:
+                        CSLRfidAppEngine.shared().reader.disconnectDevice()
+                    case .r6:
+                        ChainwayService.shared.disconnectDevice()
+                    case .none:
+                        break
+                    }
+                case .failure(let error):
+                    print(error)
+                }
+            }
         }
     }
 }
@@ -196,17 +220,21 @@ extension HandheldService {
 //MARK: CS108 Custom Functions
 extension HandheldService {
     public func findCS108Devices() {
-        CSLRfidAppEngine.shared().reader.startScanDevice()
+        DispatchQueue.global().async {
+            CSLRfidAppEngine.shared().reader.startScanDevice()
+        }
     }
     
     public func connectCS108Reader(readerName: String) {
-        if let bleDeviceForReaderName = handheldDevicesList.first(where: {$0.handheldName == readerName}) {
-            lastSelectedHandheld = bleDeviceForReaderName
-            if let peripheral = lastSelectedHandheld?.peripheral {
-                //stop scanning for device
-                CSLRfidAppEngine.shared().reader.stopScanDevice()
-                //connect to device selected
-                CSLRfidAppEngine.shared().reader.connectDevice(peripheral)
+        DispatchQueue.global().async { [self] in
+            if let bleDeviceForReaderName = handheldDevicesList.first(where: {$0.handheldName == readerName}) {
+                lastSelectedHandheld = bleDeviceForReaderName
+                if let peripheral = lastSelectedHandheld?.peripheral {
+                    //stop scanning for device
+                    CSLRfidAppEngine.shared().reader.stopScanDevice()
+                    //connect to device selected
+                    CSLRfidAppEngine.shared().reader.connectDevice(peripheral)
+                }
             }
         }
     }
@@ -250,12 +278,14 @@ extension HandheldService {
     }
     
     public func cs108setPreFilter(prefix: String) {
-        CSLRfidAppEngine.shared().settings.prefilterMask = prefix
-        CSLRfidAppEngine.shared().settings.prefilterOffset = 0
-        CSLRfidAppEngine.shared().settings.prefilterBank = .EPC
-        CSLRfidAppEngine.shared().settings.prefilterIsEnabled = true
-        
-        CSLRfidAppEngine.shared().saveSettingsToUserDefaults()
+        DispatchQueue.global().async {
+            CSLRfidAppEngine.shared().settings.prefilterMask = prefix
+            CSLRfidAppEngine.shared().settings.prefilterOffset = 0
+            CSLRfidAppEngine.shared().settings.prefilterBank = .EPC
+            CSLRfidAppEngine.shared().settings.prefilterIsEnabled = true
+            
+            CSLRfidAppEngine.shared().saveSettingsToUserDefaults()
+        }
     }
 }
 
@@ -390,12 +420,16 @@ extension HandheldService: CSLBleReaderDelegate, CSLBleInterfaceDelegate, CSLBle
     
     public func didDisconnectDevice(_ deviceDisconnected: CBPeripheral!) {
         if let hasConnectedDevice = connectedDevice {
+            connectedDevice = nil
+            isConnected = false
             delegate?.didDisconnectWithHandheld(disconnectedHandheld: hasConnectedDevice)
         }
     }
     
     public func didFailed(toConnect deviceFailedToConnect: CBPeripheral!) {
         if let hasConnectedDevice = connectedDevice {
+            connectedDevice = nil
+            isConnected = false
             delegate?.didFailWithHandheld(failedHandheld: hasConnectedDevice)
         }
     }
@@ -445,11 +479,14 @@ extension HandheldService: CSLBleReaderDelegate, CSLBleInterfaceDelegate, CSLBle
 //MARK: Chainway Custom Functions
 extension HandheldService {
     func findR6Devices() {
+        //TODO: figure out why this doesn't trigger when dispatchQueue.global() is used
         ChainwayService.shared.configureBLE()
     }
     
     func connectR6Reader(readerName: String) {
-        ChainwayService.shared.connectToDevice(withName: readerName)
+        DispatchQueue.global().async {
+            ChainwayService.shared.connectToDevice(withName: readerName)
+        }
     }
 }
 
@@ -463,12 +500,16 @@ extension HandheldService: ChainwayServiceDelegate {
     
     public func didDisconnectToDevice(deviceName: String) {
         if let hasConnectedDevice = connectedDevice {
+            connectedDevice = nil
+            isConnected = false
             delegate?.didDisconnectWithHandheld(disconnectedHandheld: hasConnectedDevice)
         }
     }
     
     public func didFailWithDevice(deviceName: String) {
         if let hasConnectedDevice = connectedDevice {
+            connectedDevice = nil
+            isConnected = false
             delegate?.didFailWithHandheld(failedHandheld: hasConnectedDevice)
         }
     }

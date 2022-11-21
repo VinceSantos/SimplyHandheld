@@ -9,7 +9,7 @@ PODS:
   - MQTTClient/Manager (0.15.3):
     - MQTTClient/Min
   - MQTTClient/Min (0.15.3)
-  - SimplyChainway (0.2.2)
+  - SimplyChainway (0.2.3)
 
 DEPENDENCIES:
   - CSL-CS108
@@ -24,7 +24,7 @@ SPEC REPOS:
 SPEC CHECKSUMS:
   CSL-CS108: 055316c20cd5fe74ba571b8806a2fe1cccb8b986
   MQTTClient: 0dfa04e789479c2e461786464969895c1fcb0875
-  SimplyChainway: b22302a879f78610683940e3ff9cac9ef38fbe58
+  SimplyChainway: 3e16d328f94eae97d67c19c9705b237c4efbcf51
 
 PODFILE CHECKSUM: 520b39b1b866e8244ac13967ec1cdd8c1f251def
 
