@@ -16,13 +16,14 @@ public class HandheldService: NSObject {
     public var handheldSupported = HandheldSupported.none
     public var handheldDevicesList = [HandheldDevice]()
     public var lastSelectedHandheld: HandheldDevice?
+    public var storedHandheld: HandheldDevice?
     public var connectedDevice: HandheldDevice?
     public var handheldMode = HandheldMode.none
     public var isConnected = false
-    public weak var delegate: HandheldServiceDelegate?
-    public var isTagFocus = false
+    private var delegate = MulticastDelegate<HandheldServiceDelegate>()
     private var batteryTrackingTimer: Timer?
     public var connectedDeviceInfo = HandheldInfo()
+    public var tagPrefix = ""
 
     override init() {
         super.init()
@@ -30,10 +31,26 @@ public class HandheldService: NSObject {
         CSLRfidAppEngine.shared().reader.readerDelegate = self
         CSLRfidAppEngine.shared().reader.scanDelegate = self
         ChainwayService.shared.delegate = self
+        if let hasStoredHandheldSupport = getData(type: Int.self, forKey: HandheldUserDefault.handheldSupport) {
+            handheldSupported = HandheldSupported(rawValue: hasStoredHandheldSupport)!
+        }
+        if let hasStoredHandheldName = getData(type: String.self, forKey: HandheldUserDefault.handheldName) {
+            storedHandheld = HandheldDevice(handheldName: hasStoredHandheldName)
+        }
+    }
+    
+    public func addDelegate(object: HandheldServiceDelegate) {
+        delegate.add(object)
+    }
+    
+    public func removeDelegate(object: HandheldServiceDelegate) {
+        delegate.remove(object)
     }
     
     public func selectHandheldSupport(selectedHandheldSupport: HandheldSupported) {
-        handheldSupported = selectedHandheldSupport
+        DispatchQueue.global().async { [self] in
+            handheldSupported = selectedHandheldSupport
+        }
     }
     
     func checkHandheldSupport(completion: @escaping (Result<HandheldSupported, HandheldError>) -> Void) {
@@ -44,7 +61,8 @@ public class HandheldService: NSObject {
         }
     }
     
-    public func setupHandheld() {
+    public func findDevices() {
+        handheldDevicesList.removeAll()
         checkHandheldSupport { [self] handheldSupportResult in
             switch handheldSupportResult {
             case .success(let handheldSupport):
@@ -55,6 +73,26 @@ public class HandheldService: NSObject {
                     findR6Devices()
                 case .none:
                     break
+                }
+            case .failure(let error):
+                print(error)
+            }
+        }
+    }
+    
+    public func stopFindingDevices() {
+        checkHandheldSupport { handheldSupportResult in
+            switch handheldSupportResult {
+            case .success(let handheldSupport):
+                DispatchQueue.global().async {
+                    switch handheldSupport {
+                    case .cs108:
+                        CSLRfidAppEngine.shared().reader.stopScanDevice()
+                    case .r6:
+                        ChainwayService.shared.stopScanningDevices()
+                    case .none:
+                        break
+                    }
                 }
             case .failure(let error):
                 print(error)
@@ -83,7 +121,9 @@ public class HandheldService: NSObject {
     public func didConnectToDevice(handheld: HandheldDevice) {
         connectedDevice = handheld
         isConnected = true
-        delegate?.didConnectToHandheld(handheld: handheld)
+        setData(value: handheldSupported.rawValue, key: HandheldUserDefault.handheldSupport)
+        setData(value: connectedDevice?.handheldName, key: HandheldUserDefault.handheldName)
+        delegate.invoke({$0.didConnectToHandheld?(handheld: handheld)})
     }
     
     public func setReaderMode(readerMode: HandheldMode) {
@@ -134,6 +174,30 @@ public class HandheldService: NSObject {
                         CSLRfidAppEngine.shared().reader.setPower(Double(power / 10))
                     case .r6:
                         ChainwayService.shared.setReadPower(intPower: power / 10)
+                    case .none:
+                        break
+                    }
+                case .failure(let error):
+                    print(error)
+                }
+            }
+        }
+    }
+    
+    public func setTagFocus(enabled: Bool) {
+        DispatchQueue.global().async { [self] in
+            checkHandheldSupport { [self] handheldSupportResult in
+                switch handheldSupportResult {
+                case .success(let handheldSupport):
+                    switch handheldSupport {
+                    case .cs108:
+                        if enabled {
+                            cs108loadSpecialSauceWithImpinjExtension()
+                        } else {
+                            cs108loadSpecialSauceWithoutImpinjExtension()
+                        }
+                    case .r6:
+                        break
                     case .none:
                         break
                     }
@@ -219,13 +283,13 @@ extension HandheldService {
 
 //MARK: CS108 Custom Functions
 extension HandheldService {
-    public func findCS108Devices() {
+    private func findCS108Devices() {
         DispatchQueue.global().async {
             CSLRfidAppEngine.shared().reader.startScanDevice()
         }
     }
     
-    public func connectCS108Reader(readerName: String) {
+    private func connectCS108Reader(readerName: String) {
         DispatchQueue.global().async { [self] in
             if let bleDeviceForReaderName = handheldDevicesList.first(where: {$0.handheldName == readerName}) {
                 lastSelectedHandheld = bleDeviceForReaderName
@@ -239,7 +303,7 @@ extension HandheldService {
         }
     }
     
-    public func cs108loadSpecialSauceWithImpinjExtension() {
+    private func cs108loadSpecialSauceWithImpinjExtension() {
         DispatchQueue.global().async { [self] in
             CSLRfidAppEngine.shared().settings.tagPopulation = Int32(tagPopulation)
             CSLRfidAppEngine.shared().settings.isQOverride = true
@@ -258,7 +322,7 @@ extension HandheldService {
         }
     }
     
-    public func cs108loadSpecialSauceWithoutImpinjExtension() {
+    private func cs108loadSpecialSauceWithoutImpinjExtension() {
         DispatchQueue.global().async { [self] in
             CSLRfidAppEngine.shared().settings.tagPopulation = Int32(tagPopulation)
             CSLRfidAppEngine.shared().settings.isQOverride = true
@@ -276,17 +340,6 @@ extension HandheldService {
             CSLRfidAppEngine.shared().saveSettingsToUserDefaults()
         }
     }
-    
-    public func cs108setPreFilter(prefix: String) {
-        DispatchQueue.global().async {
-            CSLRfidAppEngine.shared().settings.prefilterMask = prefix
-            CSLRfidAppEngine.shared().settings.prefilterOffset = 0
-            CSLRfidAppEngine.shared().settings.prefilterBank = .EPC
-            CSLRfidAppEngine.shared().settings.prefilterIsEnabled = true
-            
-            CSLRfidAppEngine.shared().saveSettingsToUserDefaults()
-        }
-    }
 }
 
 //MARK: CSL Reader Delegates
@@ -296,7 +349,7 @@ extension HandheldService: CSLBleReaderDelegate, CSLBleInterfaceDelegate, CSLBle
             if !handheldDevicesList.contains(where: {$0.handheldName == deviceDiscovered.name}) {
                 handheldDevicesList.append(HandheldDevice(peripheral: deviceDiscovered, handheldName: deviceDiscovered.name ?? ""))
             }
-            delegate?.didUpdateDeviceList(deviceList: handheldDevicesList)
+            delegate.invoke({$0.didUpdateDeviceList?(deviceList: handheldDevicesList)})
         }
     }
     
@@ -422,7 +475,7 @@ extension HandheldService: CSLBleReaderDelegate, CSLBleInterfaceDelegate, CSLBle
         if let hasConnectedDevice = connectedDevice {
             connectedDevice = nil
             isConnected = false
-            delegate?.didDisconnectWithHandheld(disconnectedHandheld: hasConnectedDevice)
+            delegate.invoke({$0.didDisconnectWithHandheld?(disconnectedHandheld: hasConnectedDevice)})
         }
     }
     
@@ -430,7 +483,7 @@ extension HandheldService: CSLBleReaderDelegate, CSLBleInterfaceDelegate, CSLBle
         if let hasConnectedDevice = connectedDevice {
             connectedDevice = nil
             isConnected = false
-            delegate?.didFailWithHandheld(failedHandheld: hasConnectedDevice)
+            delegate.invoke({$0.didFailWithHandheld?(failedHandheld: hasConnectedDevice)})
         }
     }
     
@@ -440,7 +493,7 @@ extension HandheldService: CSLBleReaderDelegate, CSLBleInterfaceDelegate, CSLBle
     
     public func didReceiveTagResponsePacket(_ sender: CSLBleReader!, tagReceived tag: CSLBleTag!) {
         let rfidResponse = RFIDResponse(value: tag.epc, rssi: Int(tag.rssi))
-        delegate?.didScanRFID(value: rfidResponse)
+        delegate.invoke({$0.didScanRFID?(rfid: rfidResponse)})
     }
     
     public func didTriggerKeyChangedState(_ sender: CSLBleReader!, keyState state: Bool) {
@@ -463,12 +516,13 @@ extension HandheldService: CSLBleReaderDelegate, CSLBleInterfaceDelegate, CSLBle
     }
     
     public func didReceiveBatteryLevelIndicator(_ sender: CSLBleReader!, batteryPercentage battPct: Int32) {
-        delegate?.didUpdateBatteryLevel(batteryLevel: Int(battPct))
+        delegate.invoke({$0.didUpdateBatteryLevel?(batteryLevel: Int(battPct))})
     }
     
     public func didReceiveBarcodeData(_ sender: CSLBleReader!, scannedBarcode barcode: CSLReaderBarcode!) {
         let barcodeResponse = BarcodeResponse(value: barcode.barcodeValue)
-        delegate?.didScanBarcode(value: barcodeResponse)
+        delegate.invoke({$0.didScanBarcode?(barcode: barcodeResponse)})
+
     }
     
     public func didReceiveTagAccessData(_ sender: CSLBleReader!, tagReceived tag: CSLBleTag!) {
@@ -478,12 +532,12 @@ extension HandheldService: CSLBleReaderDelegate, CSLBleInterfaceDelegate, CSLBle
 
 //MARK: Chainway Custom Functions
 extension HandheldService {
-    func findR6Devices() {
+    private func findR6Devices() {
         //TODO: figure out why this doesn't trigger when dispatchQueue.global() is used
         ChainwayService.shared.configureBLE()
     }
     
-    func connectR6Reader(readerName: String) {
+    private func connectR6Reader(readerName: String) {
         DispatchQueue.global().async {
             ChainwayService.shared.connectToDevice(withName: readerName)
         }
@@ -502,7 +556,7 @@ extension HandheldService: ChainwayServiceDelegate {
         if let hasConnectedDevice = connectedDevice {
             connectedDevice = nil
             isConnected = false
-            delegate?.didDisconnectWithHandheld(disconnectedHandheld: hasConnectedDevice)
+            delegate.invoke({$0.didDisconnectWithHandheld?(disconnectedHandheld: hasConnectedDevice)})
         }
     }
     
@@ -510,7 +564,7 @@ extension HandheldService: ChainwayServiceDelegate {
         if let hasConnectedDevice = connectedDevice {
             connectedDevice = nil
             isConnected = false
-            delegate?.didFailWithHandheld(failedHandheld: hasConnectedDevice)
+            delegate.invoke({$0.didFailWithHandheld?(failedHandheld: hasConnectedDevice)})
         }
     }
     
@@ -519,44 +573,35 @@ extension HandheldService: ChainwayServiceDelegate {
             if !handheldDevicesList.contains(where: {$0.handheldName == device.name}) {
                 handheldDevicesList.append(HandheldDevice(peripheral: device, handheldName: device.name ?? ""))
             }
-            delegate?.didUpdateDeviceList(deviceList: handheldDevicesList)
+            delegate.invoke({$0.didUpdateDeviceList?(deviceList: handheldDevicesList)})
         }
     }
     
     public func didReceiveBatteryLevel(batteryLevel: Int) {
-        delegate?.didUpdateBatteryLevel(batteryLevel: batteryLevel)
+        delegate.invoke({$0.didUpdateBatteryLevel?(batteryLevel: batteryLevel)})
+
     }
     
     public func didReceiveRFTags(tags: [String]) {
         if let temporaryTag = tags.last {
             let rfidResponse = RFIDResponse(value: temporaryTag, rssi: Int(0))
-            delegate?.didScanRFID(value: rfidResponse)
+            delegate.invoke({$0.didScanRFID?(rfid: rfidResponse)})
         }
     }
     
     public func didReceiveBarcode(barcode: String) {
         let barcodeResponse = BarcodeResponse(value: barcode)
-        delegate?.didScanBarcode(value: barcodeResponse)
+        delegate.invoke({$0.didScanBarcode?(barcode: barcodeResponse)})
     }
 }
 
 //MARK: HandheldService Delegate
-public protocol HandheldServiceDelegate: AnyObject {
-    func didUpdateDeviceList(deviceList: [HandheldDevice])
-    func didConnectToHandheld(handheld: HandheldDevice)
-    func didFailWithHandheld(failedHandheld: HandheldDevice)
-    func didDisconnectWithHandheld(disconnectedHandheld: HandheldDevice)
-    func didUpdateBatteryLevel(batteryLevel: Int)
-    func didScanRFID(value: RFIDResponse)
-    func didScanBarcode(value: BarcodeResponse)
-}
-
-public extension HandheldServiceDelegate {
-    func didUpdateDeviceList(deviceList: [HandheldDevice]) {}
-    func didConnectToHandheld(handheld: HandheldDevice) {}
-    func didFailWithHandheld(failedHandheld: HandheldDevice) {}
-    func didDisconnectWithHandheld(disconnectedHandheld: HandheldDevice) {}
-    func didUpdateBatteryLevel(batteryLevel: Int) {}
-    func didScanRFID(value: RFIDResponse) {}
-    func didScanBarcode(value: BarcodeResponse) {}
+@objc public protocol HandheldServiceDelegate: AnyObject {
+    @objc optional func didUpdateDeviceList(deviceList: [HandheldDevice])
+    @objc optional func didConnectToHandheld(handheld: HandheldDevice)
+    @objc optional func didFailWithHandheld(failedHandheld: HandheldDevice)
+    @objc optional func didDisconnectWithHandheld(disconnectedHandheld: HandheldDevice)
+    @objc optional func didUpdateBatteryLevel(batteryLevel: Int)
+    @objc optional func didScanRFID(rfid: RFIDResponse)
+    @objc optional func didScanBarcode(barcode: BarcodeResponse)
 }

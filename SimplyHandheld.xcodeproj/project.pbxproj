@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		4C9D8D009D1FAF1F115CE713 /* Pods_SimplyHandheld.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D202DCC8659D18E495DCC89B /* Pods_SimplyHandheld.framework */; };
+		8AD40A04292DE04300535A0D /* MulticastDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AD40A03292DE04300535A0D /* MulticastDelegate.swift */; };
 		8AF5C7D92923B8840031C484 /* SimplyHandheld.h in Headers */ = {isa = PBXBuildFile; fileRef = 8AF5C7D82923B8840031C484 /* SimplyHandheld.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		8AF5C7E12923B8DB0031C484 /* HandheldService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AF5C7DF2923B8DB0031C484 /* HandheldService.swift */; };
 		8AF5C7E22923B8DB0031C484 /* HandheldServiceModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AF5C7E02923B8DB0031C484 /* HandheldServiceModel.swift */; };
@@ -15,6 +16,7 @@
 
 /* Begin PBXFileReference section */
 		70F7FF564F29E08898D6F4D4 /* Pods-SimplyHandheld.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SimplyHandheld.debug.xcconfig"; path = "Target Support Files/Pods-SimplyHandheld/Pods-SimplyHandheld.debug.xcconfig"; sourceTree = "<group>"; };
+		8AD40A03292DE04300535A0D /* MulticastDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MulticastDelegate.swift; sourceTree = "<group>"; };
 		8AF5C7D52923B8840031C484 /* SimplyHandheld.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SimplyHandheld.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		8AF5C7D82923B8840031C484 /* SimplyHandheld.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SimplyHandheld.h; sourceTree = "<group>"; };
 		8AF5C7DF2923B8DB0031C484 /* HandheldService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HandheldService.swift; sourceTree = "<group>"; };
@@ -73,9 +75,10 @@
 		8AF5C7D72923B8840031C484 /* SimplyHandheld */ = {
 			isa = PBXGroup;
 			children = (
+				8AF5C7D82923B8840031C484 /* SimplyHandheld.h */,
+				8AD40A03292DE04300535A0D /* MulticastDelegate.swift */,
 				8AF5C7DF2923B8DB0031C484 /* HandheldService.swift */,
 				8AF5C7E02923B8DB0031C484 /* HandheldServiceModel.swift */,
-				8AF5C7D82923B8840031C484 /* SimplyHandheld.h */,
 			);
 			path = SimplyHandheld;
 			sourceTree = "<group>";
@@ -188,6 +191,7 @@
 			files = (
 				8AF5C7E12923B8DB0031C484 /* HandheldService.swift in Sources */,
 				8AF5C7E22923B8DB0031C484 /* HandheldServiceModel.swift in Sources */,
+				8AD40A04292DE04300535A0D /* MulticastDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

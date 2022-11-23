@@ -15,7 +15,7 @@ import CoreBluetooth
 }
 
 enum HandheldUserDefault: String {
-    case handheldType = "com.simplyHandheld.selectedHandheldType"
+    case handheldSupport = "com.simplyHandheld.selectedHandhelSupport"
     case handheldName = "com.simplyHandheld.selectedHandheldName"
 }
 
@@ -25,6 +25,7 @@ enum HandheldUserDefault: String {
     case none
 }
 
+@objcMembers
 public class HandheldDevice: NSObject {
     public var peripheral: CBPeripheral? = nil
     public var handheldName: String
@@ -35,6 +36,7 @@ public class HandheldDevice: NSObject {
     }
 }
 
+@objcMembers
 public class RFIDResponse: NSObject {
     public var value: String
     public var rssi: Int
@@ -45,6 +47,7 @@ public class RFIDResponse: NSObject {
     }
 }
 
+@objcMembers
 public class BarcodeResponse: NSObject {
     public var value: String
     
@@ -61,6 +64,7 @@ public class HandheldError: NSObject, Error {
     }
 }
 
+@objcMembers
 public class HandheldInfo: NSObject {
     public var btVersion: String = "N/A"
     public var icLabVersion: String = "N/A"
