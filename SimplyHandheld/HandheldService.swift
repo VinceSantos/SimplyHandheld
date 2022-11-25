@@ -505,9 +505,8 @@ extension HandheldService: CSLBleReaderDelegate, CSLBleInterfaceDelegate, CSLBle
                     CSLRfidAppEngine.shared().reader.startInventory()
                 }
             } else {
-                if handheldMode == .barcode {
+                if handheldMode == .barcode || handheldMode == .rfid {
                     CSLRfidAppEngine.shared().reader.stopBarcodeReading()
-                } else if handheldMode == .rfid {
                     CSLRfidAppEngine.shared().reader.stopInventory()
                 }
                 CSLRfidAppEngine.shared().reader.filteredBuffer.removeAllObjects()
