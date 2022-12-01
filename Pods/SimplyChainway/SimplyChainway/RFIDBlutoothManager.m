@@ -75,6 +75,7 @@
         self.dataCount=0;
         self.isInfo=NO;
         self.isSupportRssi=NO;
+        self.isStreamRealTimeTags=NO;
         self.isBLE40=NO;
         self.isName=NO;
         self.isHeader = NO;
@@ -1036,13 +1037,18 @@ NSInteger dataIndex=0;
             
             if (self.isGetBattery) {
                 //获取电池电量
-                NSString *battyStr=[dataStr substringWithRange:NSMakeRange(12, 2)];
-                NSInteger n = strtoul([battyStr UTF8String], 0, 16);//16进制数据转10进制的NSInteger
-                //NSLog(@"battyStr===%@",battyStr);
-                NSString *batStr=[NSString stringWithFormat:@"%ld",n];
-                [self.managerDelegate receiveMessageWithtype:@"e5" dataStr:batStr];
-                self.isGetBattery = NO;
-                return;
+                @try  {
+                    NSString *battyStr=[dataStr substringWithRange:NSMakeRange(12, 2)];
+                    NSInteger n = strtoul([battyStr UTF8String], 0, 16);//16进制数据转10进制的NSInteger
+                    //NSLog(@"battyStr===%@",battyStr);
+                    NSString *batStr=[NSString stringWithFormat:@"%ld",n];
+                    [self.managerDelegate receiveMessageWithtype:@"e5" dataStr:batStr];
+                    self.isGetBattery = NO;
+                    return;
+                   } @catch (NSException *exception) {
+                      NSLog(@"%@ ",exception.name);
+                      NSLog(@"Reason: %@ ",exception.reason);
+                   }//Vince - Added a checking for the substring range, getting error for get Battery polling
             }
             
             if (self.isCodeLab) {
@@ -1347,24 +1353,30 @@ NSInteger dataIndex=0;
             //*************** EPC    **************
             NSString * newEpcData= [allData substringWithRange:NSMakeRange(4, epclen*2)];
             NSString * epcAndRssiData= [allData substringWithRange:NSMakeRange(4, epclen*2+rssiLen*2)];
-            for (NSInteger j = 0 ; j < self.dataSource.count; j ++) {
-                NSString * oldEPC = self.dataSource[j];
-                oldEPC= [oldEPC substringWithRange:NSMakeRange(0,oldEPC.length-rssiLen*2 )];
-                if ([oldEPC isEqualToString:newEpcData]) {
-                    isHave = YES;
-                    self.allCount ++;
-                    NSString *countStr=self.countArr[j];
-                    [self.countArr replaceObjectAtIndex:j withObject:[NSString stringWithFormat:@"%ld",countStr.integerValue + 1]];
-                    break;
+            if (_isStreamRealTimeTags == YES) {
+                [self.managerDelegate didScanRF:epcAndRssiData];
+            } else {
+                for (NSInteger j = 0 ; j < self.dataSource.count; j ++) {
+                    NSString * oldEPC = self.dataSource[j];
+                    oldEPC= [oldEPC substringWithRange:NSMakeRange(0,oldEPC.length-rssiLen*2 )];
+                    if ([oldEPC isEqualToString:newEpcData]) {
+                        isHave = YES;
+                        self.allCount ++;
+                        NSString *countStr=self.countArr[j];
+                        [self.countArr replaceObjectAtIndex:j withObject:[NSString stringWithFormat:@"%ld",countStr.integerValue + 1]];
+                        break;
+                    }
                 }
-            }
-            if (!self.dataSource || self.dataSource.count == 0 || !isHave) {
-                [self.dataSource addObject:epcAndRssiData];
-                [self.countArr addObject:@"1"];
+                if (!self.dataSource || self.dataSource.count == 0 || !isHave) {
+                    [self.dataSource addObject:epcAndRssiData];
+                    [self.countArr addObject:@"1"];
+                }
             }
         }
         
-        [self.managerDelegate receiveDataWithBLEDataSource:self.dataSource allCount:self.allCount countArr:self.countArr dataSource1:self.dataSource1 countArr1:self.countArr1 dataSource2:self.dataSource2 countArr2:self.countArr2];
+        if (_isStreamRealTimeTags == NO) {
+            [self.managerDelegate receiveDataWithBLEDataSource:self.dataSource allCount:self.allCount countArr:self.countArr dataSource1:self.dataSource1 countArr1:self.countArr1 dataSource2:self.dataSource2 countArr2:self.countArr2];
+        }
     }
 }
 
