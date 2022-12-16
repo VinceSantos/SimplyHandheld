@@ -40,10 +40,12 @@ public class HandheldDevice: NSObject {
 public class RFIDResponse: NSObject {
     public var value: String
     public var rssi: Int
+    public var location: (Double, Double) //lat, lon
     
-    init(value: String, rssi: Int) {
+    init(value: String, rssi: Int, location: (Double, Double)) {
         self.value = value
         self.rssi = rssi
+        self.location = location
     }
 }
 

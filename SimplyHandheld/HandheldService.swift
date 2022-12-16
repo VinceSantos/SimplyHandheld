@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import CoreLocation
 import CSL_CS108
 import SimplyChainway
 
@@ -25,9 +26,16 @@ public class HandheldService: NSObject {
     public var connectedDeviceInfo = HandheldInfo()
     public var tagPrefix = ""
     private var isHandheldBusy = false
+    private var currentLocation = (0.0, 0.0)
 
     override init() {
         super.init()
+        // Create a CLLocationManager and assign a delegate
+        let locationManager = CLLocationManager()
+        locationManager.delegate = self
+
+        // Request a user’s location once
+        locationManager.requestLocation()
         CSLRfidAppEngine.shared().reader.delegate = self
         CSLRfidAppEngine.shared().reader.readerDelegate = self
         CSLRfidAppEngine.shared().reader.scanDelegate = self
@@ -315,6 +323,15 @@ public class HandheldService: NSObject {
     }
 }
 
+//MARK: Service CoreLocation Delegates
+extension HandheldService: CLLocationManagerDelegate {
+    public func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        if let lastLocation = locations.last?.coordinate {
+            currentLocation = (lastLocation.latitude, lastLocation.longitude)
+        }
+    }
+}
+
 //MARK: Service User Defaults
 extension HandheldService {
     private func setData<T>(value: T, key: HandheldUserDefault) {
@@ -558,7 +575,7 @@ extension HandheldService: CSLBleReaderDelegate, CSLBleInterfaceDelegate, CSLBle
         }
         
         if tagPass {
-            let rfidResponse = RFIDResponse(value: tag.epc, rssi: Int(tag.rssi))
+            let rfidResponse = RFIDResponse(value: tag.epc, rssi: Int(tag.rssi), location: currentLocation)
             delegate.invoke({$0.didScanRFID?(rfid: rfidResponse)})
         }
     }
@@ -663,7 +680,7 @@ extension HandheldService: ChainwayServiceDelegate {
         }
         
         if tagPass {
-            let rfidResponse = RFIDResponse(value: epc.uppercased(), rssi: rssi)
+            let rfidResponse = RFIDResponse(value: epc.uppercased(), rssi: rssi, location: currentLocation)
             delegate.invoke({$0.didScanRFID?(rfid: rfidResponse)})
         }
     }
