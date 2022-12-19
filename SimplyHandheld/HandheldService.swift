@@ -330,6 +330,10 @@ extension HandheldService: CLLocationManagerDelegate {
             currentLocation = (lastLocation.latitude, lastLocation.longitude)
         }
     }
+    
+    public func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        print(error.localizedDescription)
+    }
 }
 
 //MARK: Service User Defaults
