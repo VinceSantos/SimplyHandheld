@@ -27,6 +27,7 @@ public class HandheldService: NSObject {
     public var tagPrefix = ""
     private var isHandheldBusy = false
     private var currentLocation = (0.0, 0.0)
+    public var isTriggerDisabled = false
 
     override init() {
         super.init()
@@ -272,24 +273,26 @@ public class HandheldService: NSObject {
     
     public func startReading() {
         DispatchQueue.global().async { [self] in
-            checkHandheldSupport { [self] handheldSupportResult in
-                switch handheldSupportResult {
-                case .success(let handheldSupport):
-                    switch handheldSupport {
-                    case .cs108:
-                        isHandheldBusy = true
-                        if handheldMode == .barcode {
-                            CSLRfidAppEngine.shared().reader.startBarcodeReading()
-                        } else if handheldMode == .rfid {
-                            CSLRfidAppEngine.shared().reader.startInventory()
+            if !isTriggerDisabled {
+                checkHandheldSupport { [self] handheldSupportResult in
+                    switch handheldSupportResult {
+                    case .success(let handheldSupport):
+                        switch handheldSupport {
+                        case .cs108:
+                            isHandheldBusy = true
+                            if handheldMode == .barcode {
+                                CSLRfidAppEngine.shared().reader.startBarcodeReading()
+                            } else if handheldMode == .rfid {
+                                CSLRfidAppEngine.shared().reader.startInventory()
+                            }
+                        case .r6:
+                            break //TODO: ADD START SCANNING ON CHAINWAYSERVICE
+                        case .none:
+                            break
                         }
-                    case .r6:
-                        break //TODO: ADD START SCANNING ON CHAINWAYSERVICE
-                    case .none:
-                        break
+                    case .failure(let error):
+                        print(error)
                     }
-                case .failure(let error):
-                    print(error)
                 }
             }
         }
@@ -297,26 +300,28 @@ public class HandheldService: NSObject {
     
     public func stopReading() {
         DispatchQueue.global().async { [self] in
-            checkHandheldSupport { [self] handheldSupportResult in
-                switch handheldSupportResult {
-                case .success(let handheldSupport):
-                    switch handheldSupport {
-                    case .cs108:
-                        DispatchQueue.global().asyncAfter(deadline: DispatchTime.now() + 3, execute: DispatchWorkItem.init(block: { [self] in
-                            isHandheldBusy = false
-                        }))
-                        if handheldMode == .barcode || handheldMode == .rfid {
-                            CSLRfidAppEngine.shared().reader.stopBarcodeReading()
-                            CSLRfidAppEngine.shared().reader.stopInventory()
+            if !isTriggerDisabled {
+                checkHandheldSupport { [self] handheldSupportResult in
+                    switch handheldSupportResult {
+                    case .success(let handheldSupport):
+                        switch handheldSupport {
+                        case .cs108:
+                            DispatchQueue.global().asyncAfter(deadline: DispatchTime.now() + 3, execute: DispatchWorkItem.init(block: { [self] in
+                                isHandheldBusy = false
+                            }))
+                            if handheldMode == .barcode || handheldMode == .rfid {
+                                CSLRfidAppEngine.shared().reader.stopBarcodeReading()
+                                CSLRfidAppEngine.shared().reader.stopInventory()
+                            }
+                            CSLRfidAppEngine.shared().reader.filteredBuffer.removeAllObjects()
+                        case .r6:
+                            break //TODO: ADD STOP SCANNING ON CHAINWAYSERVICE
+                        case .none:
+                            break
                         }
-                        CSLRfidAppEngine.shared().reader.filteredBuffer.removeAllObjects()
-                    case .r6:
-                        break //TODO: ADD STOP SCANNING ON CHAINWAYSERVICE
-                    case .none:
-                        break
+                    case .failure(let error):
+                        print(error)
                     }
-                case .failure(let error):
-                    print(error)
                 }
             }
         }
