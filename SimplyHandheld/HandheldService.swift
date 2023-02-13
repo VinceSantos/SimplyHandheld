@@ -36,7 +36,7 @@ public class HandheldService: NSObject {
         locationManager.delegate = self
 
         // Request a user’s location once
-        locationManager.requestLocation()
+        locationManager.startUpdatingLocation()
         CSLRfidAppEngine.shared().reader.delegate = self
         CSLRfidAppEngine.shared().reader.readerDelegate = self
         CSLRfidAppEngine.shared().reader.scanDelegate = self
