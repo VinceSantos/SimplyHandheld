@@ -28,15 +28,14 @@ public class HandheldService: NSObject {
     private var isHandheldBusy = false
     private var currentLocation = (0.0, 0.0)
     public var isTriggerDisabled = false
+    private let locationManager = CLLocationManager()
 
     override init() {
         super.init()
         // Create a CLLocationManager and assign a delegate
-        let locationManager = CLLocationManager()
         locationManager.delegate = self
-
-        // Request a user’s location once
-        locationManager.startUpdatingLocation()
+        locationManager.pausesLocationUpdatesAutomatically = false
+        
         CSLRfidAppEngine.shared().reader.delegate = self
         CSLRfidAppEngine.shared().reader.readerDelegate = self
         CSLRfidAppEngine.shared().reader.scanDelegate = self
@@ -541,6 +540,7 @@ extension HandheldService: CSLBleReaderDelegate, CSLBleInterfaceDelegate, CSLBle
                 CSLReaderConfigurations.setConfigurationsForTags()
                 if let handheldConfigured = lastSelectedHandheld {
                     didConnectToDevice(handheld: handheldConfigured)
+                    locationManager.startUpdatingLocation()
                 }
             }
         }))
@@ -551,6 +551,7 @@ extension HandheldService: CSLBleReaderDelegate, CSLBleInterfaceDelegate, CSLBle
             connectedDevice = nil
             isConnected = false
             delegate.invoke({$0.didDisconnectWithHandheld?(disconnectedHandheld: hasConnectedDevice)})
+            locationManager.stopUpdatingLocation()
         }
     }
     
@@ -559,6 +560,7 @@ extension HandheldService: CSLBleReaderDelegate, CSLBleInterfaceDelegate, CSLBle
             connectedDevice = nil
             isConnected = false
             delegate.invoke({$0.didFailWithHandheld?(failedHandheld: hasConnectedDevice)})
+            locationManager.stopUpdatingLocation()
         }
     }
     
@@ -632,6 +634,7 @@ extension HandheldService: ChainwayServiceDelegate {
     public func didConnectToDevice(deviceName: String) {
         if let device = handheldDevicesList.first(where: {$0.handheldName == deviceName}) {
             didConnectToDevice(handheld: device)
+            locationManager.startUpdatingLocation()
         }
     }
     
@@ -640,6 +643,7 @@ extension HandheldService: ChainwayServiceDelegate {
             connectedDevice = nil
             isConnected = false
             delegate.invoke({$0.didDisconnectWithHandheld?(disconnectedHandheld: hasConnectedDevice)})
+            locationManager.stopUpdatingLocation()
         }
     }
     
@@ -648,6 +652,7 @@ extension HandheldService: ChainwayServiceDelegate {
             connectedDevice = nil
             isConnected = false
             delegate.invoke({$0.didFailWithHandheld?(failedHandheld: hasConnectedDevice)})
+            locationManager.stopUpdatingLocation()
         }
     }
     
