@@ -272,6 +272,7 @@ public class HandheldService: NSObject {
     
     public func startReading() {
         DispatchQueue.global().async { [self] in
+            delegate.invoke({$0.didPressTrigger?()})
             checkHandheldSupport { [self] handheldSupportResult in
                 switch handheldSupportResult {
                 case .success(let handheldSupport):
@@ -297,6 +298,7 @@ public class HandheldService: NSObject {
     
     public func stopReading() {
         DispatchQueue.global().async { [self] in
+            delegate.invoke({$0.didReleaseTrigger?()})
             checkHandheldSupport { [self] handheldSupportResult in
                 switch handheldSupportResult {
                 case .success(let handheldSupport):
@@ -707,4 +709,6 @@ extension HandheldService: ChainwayServiceDelegate {
     @objc optional func didUpdateBatteryLevel(batteryLevel: Int)
     @objc optional func didScanRFID(rfid: RFIDResponse)
     @objc optional func didScanBarcode(barcode: BarcodeResponse)
+    @objc optional func didPressTrigger()
+    @objc optional func didReleaseTrigger()
 }
