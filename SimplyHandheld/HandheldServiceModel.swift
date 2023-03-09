@@ -50,6 +50,19 @@ public class RFIDResponse: NSObject {
 }
 
 @objcMembers
+public class RFIDAccessResponse: NSObject {
+    public var isRead: Bool
+    public var epc: String
+    public var pc: String
+    
+    init(isRead: Bool, epc: String, pc: String) {
+        self.isRead = isRead
+        self.epc = epc
+        self.pc = pc
+    }
+}
+
+@objcMembers
 public class BarcodeResponse: NSObject {
     public var value: String
     
