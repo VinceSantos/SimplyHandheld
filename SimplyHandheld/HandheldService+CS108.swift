@@ -114,12 +114,10 @@ extension HandheldService {
     }
     
     func cs108StartAccessRead(selectedEpc: String) {
-        CSLRfidAppEngine.shared().reader.setPowerMode(true)
         CSLRfidAppEngine.shared().reader.startTagMemoryRead(MEMORYBANK.TID, dataOffset: UInt16(0), dataCount: UInt16(6), accpwd: 00000000, maskBank: MEMORYBANK.EPC, maskPointer: 32, maskLength: (UInt32(selectedEpc.count) * 4), maskData: CSLBleReader.convertHexString(toData: selectedEpc))
     }
     
     func cs108StartAccessWrite(selectedEpc: String, newEpc: String) {
-        CSLRfidAppEngine.shared().reader.setPowerMode(true)
         CSLRfidAppEngine.shared().reader.startTagMemoryWrite(MEMORYBANK.EPC, dataOffset: 2, dataCount: (UInt16(UInt32(newEpc.count) / 4)), write: CSLBleReader.convertHexString(toData: newEpc), accpwd: 00000000, maskBank: MEMORYBANK.EPC, maskPointer: 32, maskLength: (UInt32(selectedEpc.count) * 4), maskData: CSLBleReader.convertHexString(toData: selectedEpc))
     }
 }
