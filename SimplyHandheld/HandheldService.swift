@@ -40,6 +40,7 @@ public class HandheldService: NSObject {
     private var isHandheldBusy = false
     private(set) var currentLocation = (0.0, 0.0)
     public var isTriggerDisabled = false
+    public var isReadDisabled = false
     private let locationManager = CLLocationManager()
 
     override init() {
@@ -289,24 +290,26 @@ public class HandheldService: NSObject {
     public func startReading() {
         DispatchQueue.global().async { [self] in
             delegate.invoke({$0.didPressTrigger?()})
-            checkHandheldSupport { [self] handheldSupportResult in
-                switch handheldSupportResult {
-                case .success(let handheldSupport):
-                    switch handheldSupport {
-                    case .cs108:
-                        isHandheldBusy = true
-                        if handheldMode == .barcode {
-                            cs108StartBarcodeRead()
-                        } else if handheldMode == .rfid {
-                            cs108StartRfidRead()
+            if !isReadDisabled {
+                checkHandheldSupport { [self] handheldSupportResult in
+                    switch handheldSupportResult {
+                    case .success(let handheldSupport):
+                        switch handheldSupport {
+                        case .cs108:
+                            isHandheldBusy = true
+                            if handheldMode == .barcode {
+                                cs108StartBarcodeRead()
+                            } else if handheldMode == .rfid {
+                                cs108StartRfidRead()
+                            }
+                        case .r6:
+                            break //TODO: ADD START SCANNING ON CHAINWAYSERVICE
+                        case .none:
+                            break
                         }
-                    case .r6:
-                        break //TODO: ADD START SCANNING ON CHAINWAYSERVICE
-                    case .none:
-                        break
+                    case .failure(let error):
+                        print(error)
                     }
-                case .failure(let error):
-                    print(error)
                 }
             }
         }
@@ -315,25 +318,25 @@ public class HandheldService: NSObject {
     public func stopReading() {
         DispatchQueue.global().async { [self] in
             delegate.invoke({$0.didReleaseTrigger?()})
-            checkHandheldSupport { [self] handheldSupportResult in
-                switch handheldSupportResult {
-                case .success(let handheldSupport):
-                    switch handheldSupport {
-                    case .cs108:
-                        DispatchQueue.global().asyncAfter(deadline: DispatchTime.now() + 3, execute: DispatchWorkItem.init(block: { [self] in
-                            isHandheldBusy = false
-                        }))
-                        if handheldMode == .barcode || handheldMode == .rfid {
+            if !isReadDisabled {
+                checkHandheldSupport { [self] handheldSupportResult in
+                    switch handheldSupportResult {
+                    case .success(let handheldSupport):
+                        switch handheldSupport {
+                        case .cs108:
+                            DispatchQueue.global().asyncAfter(deadline: DispatchTime.now() + 3, execute: DispatchWorkItem.init(block: { [self] in
+                                isHandheldBusy = false
+                            }))
                             cs108StopRead()
+                            cs108ClearBuffer()
+                        case .r6:
+                            break //TODO: ADD STOP SCANNING ON CHAINWAYSERVICE
+                        case .none:
+                            break
                         }
-                        cs108ClearBuffer()
-                    case .r6:
-                        break //TODO: ADD STOP SCANNING ON CHAINWAYSERVICE
-                    case .none:
-                        break
+                    case .failure(let error):
+                        print(error)
                     }
-                case .failure(let error):
-                    print(error)
                 }
             }
         }

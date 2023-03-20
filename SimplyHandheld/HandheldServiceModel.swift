@@ -54,11 +54,13 @@ public class RFIDAccessResponse: NSObject {
     public var isRead: Bool
     public var epc: String
     public var pc: String
+    public var tid: String
     
-    init(isRead: Bool, epc: String, pc: String) {
+    init(isRead: Bool, epc: String, pc: String, tid: String) {
         self.isRead = isRead
         self.epc = epc
         self.pc = pc
+        self.tid = tid
     }
 }
 

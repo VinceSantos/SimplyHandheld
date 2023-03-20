@@ -115,7 +115,7 @@ extension HandheldService {
     
     func cs108StartAccessRead(selectedEpc: String) {
         CSLRfidAppEngine.shared().reader.setPowerMode(true)
-        CSLRfidAppEngine.shared().reader.startTagMemoryRead(MEMORYBANK.EPC, dataOffset: 2, dataCount: UInt16(2), accpwd: 00000000, maskBank: MEMORYBANK.EPC, maskPointer: 32, maskLength: (UInt32(selectedEpc.count) * 4), maskData: CSLBleReader.convertHexString(toData: selectedEpc))
+        CSLRfidAppEngine.shared().reader.startTagMemoryRead(MEMORYBANK.TID, dataOffset: UInt16(0), dataCount: UInt16(6), accpwd: 00000000, maskBank: MEMORYBANK.EPC, maskPointer: 32, maskLength: (UInt32(selectedEpc.count) * 4), maskData: CSLBleReader.convertHexString(toData: selectedEpc))
     }
     
     func cs108StartAccessWrite(selectedEpc: String, newEpc: String) {
@@ -318,6 +318,6 @@ extension HandheldService: CSLBleReaderDelegate, CSLBleInterfaceDelegate, CSLBle
     }
     
     public func didReceiveTagAccessData(_ sender: CSLBleReader!, tagReceived tag: CSLBleTag!) {
-        delegate.invoke({$0.didReceiveTagAccess?(rfid: RFIDAccessResponse(isRead: tag.accessCommand == .READ ? true : false, epc: tag.epc, pc: String(format: "%04X", tag.pc)))})
+        delegate.invoke({$0.didReceiveTagAccess?(rfid: RFIDAccessResponse(isRead: tag.accessCommand == .READ ? true : false, epc: tag.epc, pc: String(format: "%04X", tag.pc), tid: tag.data ?? ""))})
     }
 }
