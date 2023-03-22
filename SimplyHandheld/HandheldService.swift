@@ -20,6 +20,7 @@ import CoreLocation
     @objc optional func didReceiveTagAccess(rfid: RFIDAccessResponse)
     @objc optional func didPressTrigger()
     @objc optional func didReleaseTrigger()
+    @objc optional func didReceiveCommandEnd()
 }
 
 @objcMembers
@@ -370,6 +371,26 @@ public class HandheldService: NSObject {
                     switch handheldSupport {
                     case .cs108:
                         cs108StartAccessWrite(selectedEpc: selectedEpc, newEpc: newEpc)
+                    case .r6:
+                        break //TODO: CHAINWAY
+                    case .none:
+                        break
+                    }
+                case .failure(let error):
+                    print(error)
+                }
+            }
+        }
+    }
+    
+    public func setTagConfigurations() {
+        DispatchQueue.global().async { [self] in
+            checkHandheldSupport { [self] handheldSupportResult in
+                switch handheldSupportResult {
+                case .success(let handheldSupport):
+                    switch handheldSupport {
+                    case .cs108:
+                        cs108SetTagReadConfig()
                     case .r6:
                         break //TODO: CHAINWAY
                     case .none:

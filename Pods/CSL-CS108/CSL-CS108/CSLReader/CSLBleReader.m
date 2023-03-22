@@ -202,6 +202,7 @@
         ((Byte *)[recvPacket.payload bytes])[46] == 0x00 &&
         ((Byte *)[recvPacket.payload bytes])[47] == 0x00) {
         self.lastMacErrorCode=(((Byte *)[recvPacket.payload bytes])[15] << 8) + (((Byte *)[recvPacket.payload bytes])[14]);
+        [self.readerDelegate didReceiveCommandEndResponse:self];
         NSLog(@"Receive HST_CMD 0x03 command-end response: OK");
     }
     else

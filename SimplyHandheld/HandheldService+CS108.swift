@@ -87,7 +87,7 @@ extension HandheldService {
     }
     
     func cs108GetBatteryLevel() {
-        if CSLRfidAppEngine.shared().reader.connectStatus == .CONNECTED {
+        if CSLRfidAppEngine.shared().reader.connectStatus == .CONNECTED && CSLRfidAppEngine.shared().reader.connectStatus != .SCANNING && CSLRfidAppEngine.shared().reader.connectStatus != .BUSY && CSLRfidAppEngine.shared().reader.connectStatus != .TAG_OPERATIONS {
             CSLRfidAppEngine.shared().reader.getSingleBatteryReport()
         }
     }
@@ -119,6 +119,11 @@ extension HandheldService {
     
     func cs108StartAccessWrite(selectedEpc: String, newEpc: String) {
         CSLRfidAppEngine.shared().reader.startTagMemoryWrite(MEMORYBANK.EPC, dataOffset: 2, dataCount: (UInt16(UInt32(newEpc.count) / 4)), write: CSLBleReader.convertHexString(toData: newEpc), accpwd: 00000000, maskBank: MEMORYBANK.EPC, maskPointer: 32, maskLength: (UInt32(selectedEpc.count) * 4), maskData: CSLBleReader.convertHexString(toData: selectedEpc))
+    }
+    
+    func cs108SetTagReadConfig() {
+        CSLReaderConfigurations.setAntennaPortsAndPowerForTagAccess(false)
+        CSLReaderConfigurations.setConfigurationsForTags()
     }
 }
 
@@ -317,5 +322,9 @@ extension HandheldService: CSLBleReaderDelegate, CSLBleInterfaceDelegate, CSLBle
     
     public func didReceiveTagAccessData(_ sender: CSLBleReader!, tagReceived tag: CSLBleTag!) {
         delegate.invoke({$0.didReceiveTagAccess?(rfid: RFIDAccessResponse(isRead: tag.accessCommand == .READ ? true : false, epc: tag.epc, pc: String(format: "%04X", tag.pc), tid: tag.data ?? ""))})
+    }
+    
+    public func didReceiveCommandEndResponse(_ sender: CSLBleReader!) {
+        delegate.invoke({$0.didReceiveCommandEnd?()})
     }
 }
