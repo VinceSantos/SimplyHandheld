@@ -226,15 +226,15 @@ extension HandheldService: CSLBleReaderDelegate, CSLBleInterfaceDelegate, CSLBle
                     modelCode: CSLRfidAppEngine.shared().readerInfo.modelCode,
                     isFixed: CSLRfidAppEngine.shared().readerInfo.isFxied)
                 
-                if CSLRfidAppEngine.shared().readerRegionFrequency.tableOfFrequencies[CSLRfidAppEngine.shared().settings.region!] == nil {
+                if let savedRegion = CSLRfidAppEngine.shared().settings.region,
+                   CSLRfidAppEngine.shared().readerRegionFrequency.tableOfFrequencies[savedRegion] == nil {
                     //the region being stored is not valid, reset to default region and frequency channel
-                    CSLRfidAppEngine.shared().settings.region = CSLRfidAppEngine.shared().readerRegionFrequency.regionList[0] as? String
+                    if let region = CSLRfidAppEngine.shared().readerRegionFrequency.regionList.firstObject as? String {
+                        CSLRfidAppEngine.shared().settings.region = region
+                    }
                     CSLRfidAppEngine.shared().settings.channel = "0"
                     CSLRfidAppEngine.shared().saveSettingsToUserDefaults()
                 }
-                
-                
-                
                 
                 let fw = CSLRfidAppEngine.shared().readerInfo.btFirmwareVersion as String
                 if fw.count >= 5 {
