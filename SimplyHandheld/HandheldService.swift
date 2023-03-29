@@ -288,10 +288,10 @@ public class HandheldService: NSObject {
         }
     }
     
-    public func startReading() {
+    public func startReading(force: Bool) {
         DispatchQueue.global().async { [self] in
             delegate.invoke({$0.didPressTrigger?()})
-            if !isReadDisabled {
+            if !isReadDisabled || force {
                 checkHandheldSupport { [self] handheldSupportResult in
                     switch handheldSupportResult {
                     case .success(let handheldSupport):
@@ -316,10 +316,10 @@ public class HandheldService: NSObject {
         }
     }
     
-    public func stopReading() {
+    public func stopReading(force: Bool) {
         DispatchQueue.global().async { [self] in
             delegate.invoke({$0.didReleaseTrigger?()})
-            if !isReadDisabled {
+            if !isReadDisabled || force {
                 checkHandheldSupport { [self] handheldSupportResult in
                     switch handheldSupportResult {
                     case .success(let handheldSupport):
