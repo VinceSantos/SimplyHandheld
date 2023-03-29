@@ -247,7 +247,7 @@ extension HandheldService: CSLBleReaderDelegate, CSLBleInterfaceDelegate, CSLBle
                 }
                                 
                 CSLReaderConfigurations.setReaderRegionAndFrequencies()
-                CSLReaderConfigurations.setAntennaPortsAndPowerForTags(false)
+                CSLReaderConfigurations.setAntennaPortsAndPowerForTags(true)
                 CSLReaderConfigurations.setConfigurationsForTags()
                 if let handheldConfigured = lastSelectedHandheld {
                     didConnectToDevice(handheld: handheldConfigured)
@@ -302,9 +302,9 @@ extension HandheldService: CSLBleReaderDelegate, CSLBleInterfaceDelegate, CSLBle
         DispatchQueue.global().async { [self] in
             if !isTriggerDisabled {
                 if state == true {
-                    startReading()
+                    startReading(force: false)
                 } else {
-                    stopReading()
+                    stopReading(force: false)
                 }
             }
         }
