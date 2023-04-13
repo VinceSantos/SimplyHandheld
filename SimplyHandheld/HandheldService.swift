@@ -328,8 +328,11 @@ public class HandheldService: NSObject {
                             DispatchQueue.global().asyncAfter(deadline: DispatchTime.now() + 3, execute: DispatchWorkItem.init(block: { [self] in
                                 isHandheldBusy = false
                             }))
-                            cs108StopRead()
-                            cs108ClearBuffer()
+                            if handheldMode == .barcode {
+                                cs108StopBarcodeRead()
+                            } else if handheldMode == .rfid {
+                                cs108StopRfidRead()
+                            }
                         case .r6:
                             break //TODO: ADD STOP SCANNING ON CHAINWAYSERVICE
                         case .none:

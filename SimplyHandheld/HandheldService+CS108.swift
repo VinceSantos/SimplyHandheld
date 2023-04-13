@@ -104,8 +104,11 @@ extension HandheldService {
         CSLRfidAppEngine.shared().reader.startInventory()
     }
     
-    func cs108StopRead() {
+    func cs108StopBarcodeRead() {
         CSLRfidAppEngine.shared().reader.stopBarcodeReading()
+    }
+    
+    func cs108StopRfidRead() {
         CSLRfidAppEngine.shared().reader.stopInventory()
     }
     
