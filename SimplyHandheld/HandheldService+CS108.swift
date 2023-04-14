@@ -86,10 +86,12 @@ extension HandheldService {
         CSLRfidAppEngine.shared().reader.setPower(Double(power / 10))
     }
     
-    func cs108GetBatteryLevel() {
-        if CSLRfidAppEngine.shared().reader.connectStatus == .CONNECTED && CSLRfidAppEngine.shared().reader.connectStatus != .SCANNING && CSLRfidAppEngine.shared().reader.connectStatus != .BUSY && CSLRfidAppEngine.shared().reader.connectStatus != .TAG_OPERATIONS {
-            CSLRfidAppEngine.shared().reader.getSingleBatteryReport()
-        }
+    func cs108StartBatteryReport() {
+        CSLRfidAppEngine.shared().reader.startBatteryAutoReporting()
+    }
+    
+    func cs108StopBatteryReport() {
+        CSLRfidAppEngine.shared().reader.stopBatteryAutoReporting()
     }
     
     func cs108DisconnectDevice() {

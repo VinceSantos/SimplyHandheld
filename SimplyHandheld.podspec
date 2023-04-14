@@ -1,6 +1,6 @@
 Pod::Spec.new do |spec|
   spec.name         = "SimplyHandheld"
-  spec.version      = "0.2.5"
+  spec.version      = "0.2.6"
   spec.summary      = "Simply RFID Master Handheld Service"
   spec.description  = "A framework for all supported SimplyRFID handhelds"
 

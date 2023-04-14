@@ -35,7 +35,6 @@ public class HandheldService: NSObject {
     public var handheldMode = HandheldMode.none
     public var isConnected = false
     private(set) var delegate = MulticastDelegate<HandheldServiceDelegate>()
-    private var batteryTrackingTimer: Timer?
     public var connectedDeviceInfo = HandheldInfo()
     public var tagPrefix = ""
     private var isHandheldBusy = false
@@ -48,10 +47,11 @@ public class HandheldService: NSObject {
         super.init()
         // Create a CLLocationManager and assign a delegate
         locationManager.delegate = self
+        locationManager.requestWhenInUseAuthorization()
         locationManager.pausesLocationUpdatesAutomatically = false
         
         setCS108Delegates()
-        setChainwayDelegates()
+//        setChainwayDelegates() //TODO: removed because chainway on hold
         if let hasStoredHandheldSupport = getData(type: Int.self, forKey: HandheldUserDefault.handheldSupport) {
             handheldSupported = HandheldSupported(rawValue: hasStoredHandheldSupport)!
         }
@@ -238,23 +238,21 @@ public class HandheldService: NSObject {
     }
     
     public func startBatteryTracking() {
-        batteryTrackingTimer = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { [self] _ in
-            DispatchQueue.global().async { [self] in
-                if isConnected && !isHandheldBusy {
-                    checkHandheldSupport { [self] handheldSupportResult in
-                        switch handheldSupportResult {
-                        case .success(let handheldSupport):
-                            switch handheldSupport {
-                            case .cs108:
-                                cs108GetBatteryLevel()
-                            case .r6:
-                                chainwayGetBatteryLevel()
-                            case .none:
-                                break
-                            }
-                        case .failure(let error):
-                            print(error)
+        DispatchQueue.global().async { [self] in
+            if isConnected && !isHandheldBusy {
+                checkHandheldSupport { [self] handheldSupportResult in
+                    switch handheldSupportResult {
+                    case .success(let handheldSupport):
+                        switch handheldSupport {
+                        case .cs108:
+                            cs108StartBatteryReport()
+                        case .r6:
+                            break
+                        case .none:
+                            break
                         }
+                    case .failure(let error):
+                        print(error)
                     }
                 }
             }
@@ -262,9 +260,24 @@ public class HandheldService: NSObject {
     }
     
     public func stopBatteryTracking() {
-        if batteryTrackingTimer != nil {
-            batteryTrackingTimer?.invalidate()
-            batteryTrackingTimer = nil
+        DispatchQueue.global().async { [self] in
+            if isConnected && !isHandheldBusy {
+                checkHandheldSupport { [self] handheldSupportResult in
+                    switch handheldSupportResult {
+                    case .success(let handheldSupport):
+                        switch handheldSupport {
+                        case .cs108:
+                            cs108StopBatteryReport()
+                        case .r6:
+                            break
+                        case .none:
+                            break
+                        }
+                    case .failure(let error):
+                        print(error)
+                    }
+                }
+            }
         }
     }
     
