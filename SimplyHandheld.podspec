@@ -8,7 +8,7 @@ Pod::Spec.new do |spec|
   spec.license      = "MIT"
   spec.author             = { "Vince Santos" => "vince.santos@simplyrfid.com" }
   spec.platform     = :ios, "13.0"
-  spec.source       = { :git => "https://github.com/VinceSantos/SimplyHandheld", :tag => spec.version.to_s }
+  spec.source       = { :git => "https://github.com/VinceSantos/SimplyHandheld.git", :tag => spec.version.to_s }
   spec.source_files  = "SimplyHandheld"
   spec.swift_versions = "5.0"
   spec.dependency 'CSL-CS108'
