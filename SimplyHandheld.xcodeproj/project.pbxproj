@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		4C9D8D009D1FAF1F115CE713 /* Pods_SimplyHandheld.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D202DCC8659D18E495DCC89B /* Pods_SimplyHandheld.framework */; };
 		8A00DB5829B8D28000184090 /* HandheldService+CS108.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A00DB5729B8D28000184090 /* HandheldService+CS108.swift */; };
 		8A00DB5A29B8D4CF00184090 /* HandheldService+UserDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A00DB5929B8D4CF00184090 /* HandheldService+UserDefaults.swift */; };
 		8A00DB5C29B8D54200184090 /* HandheldService+Chainway.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A00DB5B29B8D54200184090 /* HandheldService+Chainway.swift */; };
@@ -18,7 +17,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		70F7FF564F29E08898D6F4D4 /* Pods-SimplyHandheld.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SimplyHandheld.debug.xcconfig"; path = "Target Support Files/Pods-SimplyHandheld/Pods-SimplyHandheld.debug.xcconfig"; sourceTree = "<group>"; };
 		8A00DB5729B8D28000184090 /* HandheldService+CS108.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HandheldService+CS108.swift"; sourceTree = "<group>"; };
 		8A00DB5929B8D4CF00184090 /* HandheldService+UserDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HandheldService+UserDefaults.swift"; sourceTree = "<group>"; };
 		8A00DB5B29B8D54200184090 /* HandheldService+Chainway.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HandheldService+Chainway.swift"; sourceTree = "<group>"; };
@@ -27,8 +25,6 @@
 		8AF5C7D82923B8840031C484 /* SimplyHandheld.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SimplyHandheld.h; sourceTree = "<group>"; };
 		8AF5C7DF2923B8DB0031C484 /* HandheldService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HandheldService.swift; sourceTree = "<group>"; };
 		8AF5C7E02923B8DB0031C484 /* HandheldServiceModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HandheldServiceModel.swift; sourceTree = "<group>"; };
-		B2CBB943E858D6ECF91D7CAD /* Pods-SimplyHandheld.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SimplyHandheld.release.xcconfig"; path = "Target Support Files/Pods-SimplyHandheld/Pods-SimplyHandheld.release.xcconfig"; sourceTree = "<group>"; };
-		D202DCC8659D18E495DCC89B /* Pods_SimplyHandheld.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_SimplyHandheld.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -36,26 +32,15 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4C9D8D009D1FAF1F115CE713 /* Pods_SimplyHandheld.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		07325FD365A2C5AB3181E0AC /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				D202DCC8659D18E495DCC89B /* Pods_SimplyHandheld.framework */,
-			);
-			name = Frameworks;
-			sourceTree = "<group>";
-		};
 		6703B0FFD389309608F43BEE /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				70F7FF564F29E08898D6F4D4 /* Pods-SimplyHandheld.debug.xcconfig */,
-				B2CBB943E858D6ECF91D7CAD /* Pods-SimplyHandheld.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -66,7 +51,6 @@
 				8AF5C7D72923B8840031C484 /* SimplyHandheld */,
 				8AF5C7D62923B8840031C484 /* Products */,
 				6703B0FFD389309608F43BEE /* Pods */,
-				07325FD365A2C5AB3181E0AC /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -110,7 +94,6 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 8AF5C7DC2923B8840031C484 /* Build configuration list for PBXNativeTarget "SimplyHandheld" */;
 			buildPhases = (
-				8ED628399EB6BE6697810748 /* [CP] Check Pods Manifest.lock */,
 				8AF5C7D02923B8840031C484 /* Headers */,
 				8AF5C7D12923B8840031C484 /* Sources */,
 				8AF5C7D22923B8840031C484 /* Frameworks */,
@@ -167,31 +150,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
-
-/* Begin PBXShellScriptBuildPhase section */
-		8ED628399EB6BE6697810748 /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-SimplyHandheld-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		8AF5C7D12923B8840031C484 /* Sources */ = {
@@ -334,7 +292,6 @@
 		};
 		8AF5C7DD2923B8840031C484 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 70F7FF564F29E08898D6F4D4 /* Pods-SimplyHandheld.debug.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
@@ -365,7 +322,6 @@
 		};
 		8AF5C7DE2923B8840031C484 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = B2CBB943E858D6ECF91D7CAD /* Pods-SimplyHandheld.release.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;

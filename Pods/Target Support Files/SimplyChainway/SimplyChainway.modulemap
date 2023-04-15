@@ -1,6 +1,0 @@
-framework module SimplyChainway {
-  umbrella header "SimplyChainway-umbrella.h"
-
-  export *
-  module * { export * }
-}
